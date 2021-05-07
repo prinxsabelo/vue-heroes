@@ -13,6 +13,7 @@ const getHeroes = async function() {
 
     const heroes = data.map(h => {
       h.originDate = format(h.originDate, inputDateFormat);
+      h.fullName = `${h.firstName} ${h.lastName}`;
       return h;
     });
     return heroes;
@@ -26,6 +27,7 @@ const getHero = async function(id) {
   try {
     const response = await axios.get(`${API}/heroes/${id}`);
     let hero = parseItem(response, 200);
+    hero.fullName = `${hero.firstName} ${hero.lastName}`;
     return hero;
   } catch (error) {
     console.error(error);
@@ -38,6 +40,29 @@ const updateHero = async function(hero) {
     const response = await axios.put(`${API}/heroes/${hero.id}`, hero);
     const updatedHero = parseItem(response, 200);
     return updatedHero;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+const addHero = async function(hero) {
+  try {
+    const response = await axios.post(`${API}/heroes`, hero);
+    const addedHero = parseItem(response, 201);
+    return addedHero;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+const deleteHero = async function(hero) {
+  try {
+    const response = await axios.delete(`${API}/heroes/${hero.id}`);
+    parseItem(response, 200);
+    console.log(hero.id);
+    return hero.id;
   } catch (error) {
     console.error(error);
     return null;
@@ -67,4 +92,6 @@ export const dataService = {
   getHeroes,
   getHero,
   updateHero,
+  addHero,
+  deleteHero,
 };

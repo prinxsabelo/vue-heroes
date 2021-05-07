@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div v-if="hero">
     <div class="section content-title-group">
-      <h2 class="title">Edit Hero</h2>
+      <h2 class="title">{{ title }}</h2>
       <div class="card">
         <header class="card-header">
-          <p class="card-header-title">{{ fullName }}</p>
+          <p class="card-header-title">{{ hero.fullName }}</p>
         </header>
         <div class="card-content">
           <div class="content">
@@ -49,7 +49,9 @@
 </template>
 
 <script>
-import { dataService } from '../shared';
+// import { dataService } from '../shared';
+import { mapActions, mapGetters } from 'vuex';
+import { cloneDeep } from 'lodash';
 
 export default {
   name: 'HeroDetail',
@@ -64,21 +66,43 @@ export default {
       hero: {},
     };
   },
-  async created() {
-    console.log(this.id);
-    this.hero = await dataService.getHero(this.id);
+  created() {
+    if (this.isAddMode) {
+      this.hero = {
+        id: undefined,
+        firstName: '',
+        lastName: '',
+        description: '',
+      };
+    } else {
+      // this.hero = await dataService.getHero(this.id);
+      // this.hero = { ...this.getHeroById(this.id) };
+      this.hero = cloneDeep(this.getHeroById(this.id));
+    }
   },
   computed: {
-    fullName() {
-      return this.hero ? `${this.hero.firstName} ${this.hero.lastName}` : '';
+    // 1. mapping Getters
+    // ...mapGetters({ getHeroById: 'getHeroById' }),
+    // 2. shortcut for mapping Getters
+    ...mapGetters(['getHeroById']),
+    // (mapGetters) map `this.getHeroById` to `this.$store.getters.getHeroById`
+    isAddMode() {
+      return !this.id;
+    },
+    title() {
+      return `${this.isAddMode ? 'Add' : 'Edit'} Hero`;
     },
   },
   methods: {
+    ...mapActions(['updateHeroAction', 'addHeroAction']),
     cancelHero() {
       this.$router.push({ name: 'heroes' });
     },
     async saveHero() {
-      await dataService.updateHero(this.hero);
+      // await dataService.updateHero(this.hero);
+      this.hero.id
+        ? await this.updateHeroAction(this.hero)
+        : await this.addHeroAction(this.hero);
       this.$router.push({ name: 'heroes' });
     },
   },
